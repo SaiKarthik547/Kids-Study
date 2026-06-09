@@ -2,9 +2,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:isar/isar.dart';
 import 'dart:io';
 
-import 'package:ascendia/domain/entities/response_event.dart';
-import 'package:ascendia/data/local/models/response_event_entity.dart';
 import 'package:ascendia/data/local/outbox_entity.dart';
+import 'package:ascendia/data/local/models/response_event_entity.dart';
+import 'package:ascendia/data/repositories/isar_outbox_repository.dart';
+import 'package:ascendia/data/repositories/isar_response_event_repository.dart';
+import 'package:ascendia/domain/entities/response_event.dart';
 
 void main() {
   late Isar isar;
@@ -45,22 +47,16 @@ void main() {
       syncId: 'sync-session-1',
     );
 
-    // 2. Map to Data Entity
-    final dataEntity = ResponseEventEntity.fromDomain(domainEvent);
+    final repository = IsarResponseEventRepository(isar);
 
-    // 3. Save to local DB (Write)
-    await isar.writeTxn(() async {
-      await isar.responseEventEntitys.put(dataEntity);
-    });
+    // 2. Save to local DB through the repository boundary
+    await repository.append(domainEvent);
 
-    // 4. Reload from DB (Restart simulation)
-    final reloadedEntity = await isar.responseEventEntitys.where().findFirst();
-    expect(reloadedEntity, isNotNull);
+    // 3. Reload from DB (Restart simulation)
+    final reloadedDomain = await repository.findByEventId('uuid-1234');
+    expect(reloadedDomain, isNotNull);
     
-    // 5. Map back to Domain Entity
-    final reloadedDomain = reloadedEntity!.toDomain();
-    
-    expect(reloadedDomain.eventId, 'uuid-1234');
+    expect(reloadedDomain!.eventId, 'uuid-1234');
     expect(reloadedDomain.studentId, 'student-99');
     expect(reloadedDomain.questionId, 'q-55');
   });
@@ -82,19 +78,19 @@ void main() {
       syncId: 'sync-session-2',
     );
 
-    // 1. Convert to Outbox payload
-    final outboxItem = OutboxEntity.fromResponseEvent(domainEvent);
+    final repository = IsarOutboxRepository(isar);
 
-    // 2. Enqueue
-    await isar.writeTxn(() async {
-      await isar.outboxEntitys.put(outboxItem);
-    });
+    // 1. Enqueue through the repository boundary
+    await repository.enqueueResponseEvent(domainEvent);
 
-    // 3. Read queue
+    // 2. Read persisted queue metadata and mapped domain payload
     final queue = await isar.outboxEntitys.where().findAll();
+    final pendingEvents = await repository.pendingResponseEvents();
+
     expect(queue.length, 1);
     expect(queue.first.eventType, 'ResponseEvent');
     expect(queue.first.eventId, 'uuid-9999');
     expect(queue.first.isProcessing, false);
+    expect(pendingEvents.single.eventId, 'uuid-9999');
   });
 }

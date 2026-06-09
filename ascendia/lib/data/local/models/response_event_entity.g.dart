@@ -94,7 +94,7 @@ const ResponseEventEntitySchema = CollectionSchema(
       id: -2707901133518603130,
       name: r'eventId',
       unique: true,
-      replace: true,
+      replace: false,
       properties: [
         IndexPropertySchema(
           name: r'eventId',

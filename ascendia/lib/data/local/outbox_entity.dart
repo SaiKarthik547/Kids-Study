@@ -1,6 +1,4 @@
 import 'package:isar/isar.dart';
-import 'dart:convert';
-import '../../domain/entities/response_event.dart';
 
 part 'outbox_entity.g.dart';
 
@@ -27,12 +25,4 @@ class OutboxEntity {
   int retryCount = 0;
 
   OutboxEntity();
-
-  factory OutboxEntity.fromResponseEvent(ResponseEvent event) {
-    return OutboxEntity()
-      ..eventId = event.eventId
-      ..eventType = 'ResponseEvent'
-      ..payloadJson = jsonEncode(event.toJson())
-      ..createdAt = DateTime.now();
-  }
 }

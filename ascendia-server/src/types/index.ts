@@ -2,7 +2,7 @@
 
 /** Payload shape for a single response event coming from the client */
 export interface ResponseEventPayload {
-  readonly id: string;
+  readonly eventId: string;
   readonly schemaVersion: number;
   readonly studentId: string;
   readonly questionId: string;

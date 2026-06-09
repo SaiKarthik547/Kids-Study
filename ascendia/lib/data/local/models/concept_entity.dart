@@ -1,5 +1,4 @@
 import 'package:isar/isar.dart';
-import '../../../domain/entities/concept.dart';
 
 part 'concept_entity.g.dart';
 
@@ -20,31 +19,4 @@ class ConceptEntity {
   late List<String> prerequisiteIds;
 
   ConceptEntity();
-
-  factory ConceptEntity.fromDomain(Concept concept) {
-    return ConceptEntity()
-      ..conceptId = concept.id
-      ..subjectId = concept.subjectId
-      ..boardId = concept.boardId
-      ..classLevel = concept.classLevel
-      ..title = concept.title
-      ..description = concept.description
-      ..bloomRange = concept.bloomRange
-      ..version = concept.version
-      ..prerequisiteIds = concept.prerequisiteIds;
-  }
-
-  Concept toDomain() {
-    return Concept(
-      id: conceptId,
-      subjectId: subjectId,
-      boardId: boardId,
-      classLevel: classLevel,
-      title: title,
-      description: description,
-      bloomRange: bloomRange,
-      version: version,
-      prerequisiteIds: prerequisiteIds,
-    );
-  }
 }

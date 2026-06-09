@@ -11,7 +11,7 @@ import type {
  */
 function toCreateInput(event: ResponseEventPayload) {
   return {
-    id: event.id,
+    eventId: event.eventId,
     schemaVersion: event.schemaVersion,
     studentId: event.studentId,
     questionId: event.questionId,

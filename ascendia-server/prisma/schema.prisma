@@ -198,7 +198,7 @@ model QuestionOption {
 // ─── Student Events (Immutable, Event Sourced) ───────────────────────────
 
 model ResponseEvent {
-  id              String   @id @default(uuid()) // UUID for idempotent sync
+  eventId         String   @id @default(uuid()) // UUID for idempotent sync
   schemaVersion   Int      @default(1)
   studentId       String
   questionId      String
