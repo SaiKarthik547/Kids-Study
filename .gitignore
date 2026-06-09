@@ -1,0 +1,160 @@
+# Root .gitignore — protects secrets, build artifacts, and IDE files
+# Generated/updated to avoid committing dangerous files to GitHub.
+
+# ----------------------
+# OS
+# ----------------------
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ----------------------
+# IDEs / Editors
+# ----------------------
+.vscode/
+.idea/
+*.iml
+*.sublime-workspace
+*.sublime-project
+
+# ----------------------
+# Node
+# ----------------------
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log
+
+# ----------------------
+# Logs
+# ----------------------
+logs/
+*.log
+
+# ----------------------
+# Flutter / Dart
+# ----------------------
+.flutter-plugins
+.flutter-plugins-dependencies
+.dart_tool/
+.packages
+build/
+**/build/
+
+# Generated files
+.flutter-*
+
+# ----------------------
+# Android
+# ----------------------
+local.properties
+**/local.properties
+.gradle/
+/.gradle/
+android/.gradle/
+**/app/build/
+**/build/
+android/app/debug.keystore
+*.jks
+*.keystore
+debug.keystore
+key.properties
+
+# ----------------------
+# iOS / Xcode / macOS
+# ----------------------
+ios/Pods/
+ios/Podfile.lock
+ios/Runner.xcworkspace/
+*.xcworkspace
+xcuserdata/
+*.xcuserstate
+DerivedData/
+*.mobileprovision
+*.xcarchive
+*.xcconfig
+*.pbxuser
+*.mode1v3
+
+# ----------------------
+# Certificates, keys, provisioning
+# ----------------------
+*.p12
+*.pem
+*.key
+*.crt
+*.der
+*.pfx
+*.jks
+*.keystore
+*.mobileprovision
+
+# ----------------------
+# Secrets and environment files
+# ----------------------
+.env
+.env.*
+.env.local
+credentials.json
+serviceAccountKey.json
+google-services.json
+GoogleService-Info.plist
+firebase-debug.log
+
+# ----------------------
+# Keystore & signing files
+# ----------------------
+**/keystore.jks
+**/*keystore*
+key.jks
+keystore.properties
+
+# ----------------------
+# Build output / artifacts
+# ----------------------
+dist/
+out/
+coverage/
+*.egg-info/
+.eggs/
+
+# ----------------------
+# Python
+# ----------------------
+__pycache__/
+*.py[cod]
+*.pyo
+
+# ----------------------
+# Misc / temp
+# ----------------------
+*~
+~$*
+.~lock.*
+.vagrant/
+.vim/
+
+# OneDrive / sync artifacts
+Thumbs.db
+
+# Local run configs
+.run/
+*.launch
+
+# Terraform / cloud
+.terraform/
+*.tfstate
+*.tfstate.*
+
+# ----------------------
+# Conservative catch-all for filenames that commonly contain secrets
+# (use carefully; these patterns are intentionally broad to avoid accidental leaks)
+# ----------------------
+*secret*
+*credentials*
+*passwd*
+*password*
+*apikey*
+*api_key*
+*private_key*

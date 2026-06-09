@@ -1,0 +1,249 @@
+// ─── Datasource & Generator ────────────────────────────────────────────────
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ─── Enums ─────────────────────────────────────────────────────────────────
+
+enum Role {
+  STUDENT
+  PARENT
+  TEACHER
+  ADMIN
+}
+
+enum BoardCode {
+  CBSE
+  AP
+}
+
+enum SubjectName {
+  MATH
+  SCIENCE
+}
+
+enum QuestionType {
+  CONSTRUCT
+  APPLY
+  IDENTIFY_MISCONCEPTION
+}
+
+enum QuestionStatus {
+  DRAFT
+  REVIEW_PENDING
+  APPROVED
+  PUBLISHED
+  ARCHIVED
+}
+
+// ─── Users & Auth ──────────────────────────────────────────────────────────
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  role         Role
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  student Student?
+  parent  Parent?
+}
+
+model Student {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  boardId     BoardCode
+  classLevel  Int
+  displayName String
+  createdAt   DateTime @default(now())
+
+  user             User              @relation(fields: [userId], references: [id])
+  board            Board             @relation(fields: [boardId], references: [id])
+  parentStudents   ParentStudent[]
+  responseEvents   ResponseEvent[]
+  masterySnapshots MasterySnapshot[]
+  sessions         Session[]
+}
+
+model Parent {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  createdAt DateTime @default(now())
+
+  user           User            @relation(fields: [userId], references: [id])
+  parentStudents ParentStudent[]
+}
+
+model ParentStudent {
+  parentId  String
+  studentId String
+
+  parent  Parent  @relation(fields: [parentId], references: [id])
+  student Student @relation(fields: [studentId], references: [id])
+
+  @@id([parentId, studentId])
+}
+
+// ─── Knowledge Graph (Versioned) ──────────────────────────────────────────
+
+model Board {
+  id   BoardCode @id
+  name String
+
+  concepts Concept[]
+  students Student[]
+}
+
+model Subject {
+  id   SubjectName @id
+  name String
+
+  concepts Concept[]
+}
+
+model Concept {
+  id          String      @id @default(cuid())
+  subjectId   SubjectName
+  boardId     BoardCode
+  classLevel  Int
+  title       String
+  description String
+  bloomRange  String       // e.g. "1-3"
+  version     Int          @default(1)
+  createdAt   DateTime     @default(now())
+
+  subject          Subject              @relation(fields: [subjectId], references: [id])
+  board            Board                @relation(fields: [boardId], references: [id])
+  questions        Question[]
+  misconceptions   Misconception[]
+  masterySnapshots MasterySnapshot[]
+
+  // Self-referential prerequisite graph
+  prerequisites   ConceptPrerequisite[] @relation("ConceptPrereqs")
+  dependents      ConceptPrerequisite[] @relation("ConceptDependents")
+}
+
+model ConceptPrerequisite {
+  conceptId            String
+  prerequisiteConceptId String
+
+  concept      Concept @relation("ConceptPrereqs", fields: [conceptId], references: [id])
+  prerequisite Concept @relation("ConceptDependents", fields: [prerequisiteConceptId], references: [id])
+
+  @@id([conceptId, prerequisiteConceptId])
+}
+
+model Misconception {
+  id          String  @id @default(cuid())
+  conceptId   String
+  description String
+  version     Int     @default(1)
+
+  concept         Concept          @relation(fields: [conceptId], references: [id])
+  questionOptions QuestionOption[]
+}
+
+// ─── Content (Versioned, with Validation State Machine) ───────────────────
+
+model Question {
+  id            String         @id @default(cuid())
+  conceptId     String
+  version       Int            @default(1)
+  schemaVersion Int            @default(1)
+  bloomLevel    Int            // 1-5
+  type          QuestionType
+  stem          String
+  correctAnswer String
+  explanation   String
+  status        QuestionStatus @default(DRAFT)
+  approvedBy    String?
+  approvedAt    DateTime?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  concept        Concept          @relation(fields: [conceptId], references: [id])
+  hints          QuestionHint[]
+  options        QuestionOption[]
+  responseEvents ResponseEvent[]
+}
+
+model QuestionHint {
+  id         String @id @default(cuid())
+  questionId String
+  level      Int    // 1-3
+  content    String
+
+  question Question @relation(fields: [questionId], references: [id])
+}
+
+model QuestionOption {
+  id              String  @id @default(cuid())
+  questionId      String
+  text            String
+  isCorrect       Boolean
+  misconceptionId String? // nullable — links wrong answer to specific misconception
+
+  question     Question      @relation(fields: [questionId], references: [id])
+  misconception Misconception? @relation(fields: [misconceptionId], references: [id])
+}
+
+// ─── Student Events (Immutable, Event Sourced) ───────────────────────────
+
+model ResponseEvent {
+  id              String   @id @default(uuid()) // UUID for idempotent sync
+  schemaVersion   Int      @default(1)
+  studentId       String
+  questionId      String
+  questionVersion Int
+  selectedAnswer  String
+  correctAnswer   String
+  attemptNumber   Int
+  hintLevel       Int
+  responseTimeMs  Int
+  localOccurredAt DateTime
+  receivedAt      DateTime @default(now())
+  syncId          String
+
+  student  Student  @relation(fields: [studentId], references: [id])
+  question Question @relation(fields: [questionId], references: [id])
+}
+
+// ─── Derived State (Disposable Cache) ────────────────────────────────────
+
+model MasterySnapshot {
+  id             String   @id @default(cuid())
+  studentId      String
+  conceptId      String
+  masteryScore   Float
+  easeFactor     Float
+  interval       Float
+  repetitions    Int
+  lastReviewedAt DateTime
+  updatedAt      DateTime @updatedAt
+
+  student Student @relation(fields: [studentId], references: [id])
+  concept Concept @relation(fields: [conceptId], references: [id])
+
+  @@unique([studentId, conceptId])
+}
+
+// ─── Sessions ────────────────────────────────────────────────────────────
+
+model Session {
+  id                  String   @id @default(cuid())
+  studentId           String
+  startedAt           DateTime @default(now())
+  endedAt             DateTime?
+  totalResponseEvents Int      @default(0)
+  conceptsEngaged     Int      @default(0)
+
+  student Student @relation(fields: [studentId], references: [id])
+}
