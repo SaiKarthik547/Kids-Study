@@ -10,9 +10,9 @@ class IsarResponseEventRepository implements ResponseEventRepository {
   final ResponseEventMapper _mapper;
 
   const IsarResponseEventRepository(
-    this._isar, {
-    ResponseEventMapper mapper = const ResponseEventMapper(),
-  }) : _mapper = mapper;
+    this._isar, [
+    this._mapper = const ResponseEventMapper(),
+  ]);
 
   @override
   Future<void> append(ResponseEvent event) async {
@@ -24,8 +24,8 @@ class IsarResponseEventRepository implements ResponseEventRepository {
 
   @override
   Future<ResponseEvent?> findByEventId(String eventId) async {
-    final ResponseEventEntity? entity =
-        await _isar.responseEventEntitys.getByEventId(eventId);
+    final ResponseEventEntity? entity = await _isar.responseEventEntitys
+        .getByEventId(eventId);
     return entity == null ? null : _mapper.toDomain(entity);
   }
 }

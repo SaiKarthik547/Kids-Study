@@ -10,9 +10,9 @@ class IsarMasterySnapshotRepository implements MasterySnapshotRepository {
   final MasterySnapshotMapper _mapper;
 
   const IsarMasterySnapshotRepository(
-    this._isar, {
-    MasterySnapshotMapper mapper = const MasterySnapshotMapper(),
-  }) : _mapper = mapper;
+    this._isar, [
+    this._mapper = const MasterySnapshotMapper(),
+  ]);
 
   @override
   Future<void> save(MasterySnapshot snapshot) async {
@@ -24,8 +24,8 @@ class IsarMasterySnapshotRepository implements MasterySnapshotRepository {
 
   @override
   Future<MasterySnapshot?> findById(String snapshotId) async {
-    final MasterySnapshotEntity? entity =
-        await _isar.masterySnapshotEntitys.getBySnapshotId(snapshotId);
+    final MasterySnapshotEntity? entity = await _isar.masterySnapshotEntitys
+        .getBySnapshotId(snapshotId);
     return entity == null ? null : _mapper.toDomain(entity);
   }
 }

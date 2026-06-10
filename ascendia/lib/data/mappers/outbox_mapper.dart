@@ -8,10 +8,7 @@ class OutboxMapper {
 
   const OutboxMapper();
 
-  OutboxEntity fromResponseEvent(
-    ResponseEvent event, {
-    DateTime? createdAt,
-  }) {
+  OutboxEntity fromResponseEvent(ResponseEvent event, {DateTime? createdAt}) {
     return OutboxEntity()
       ..eventId = event.eventId
       ..eventType = responseEventType

@@ -10,9 +10,9 @@ class IsarConceptRepository implements ConceptRepository {
   final ConceptMapper _mapper;
 
   const IsarConceptRepository(
-    this._isar, {
-    ConceptMapper mapper = const ConceptMapper(),
-  }) : _mapper = mapper;
+    this._isar, [
+    this._mapper = const ConceptMapper(),
+  ]);
 
   @override
   Future<void> save(Concept concept) async {
@@ -24,8 +24,9 @@ class IsarConceptRepository implements ConceptRepository {
 
   @override
   Future<Concept?> findById(String conceptId) async {
-    final ConceptEntity? entity =
-        await _isar.conceptEntitys.getByConceptId(conceptId);
+    final ConceptEntity? entity = await _isar.conceptEntitys.getByConceptId(
+      conceptId,
+    );
     return entity == null ? null : _mapper.toDomain(entity);
   }
 }

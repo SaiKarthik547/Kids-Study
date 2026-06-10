@@ -9,10 +9,7 @@ class IsarOutboxRepository implements OutboxRepository {
   final Isar _isar;
   final OutboxMapper _mapper;
 
-  const IsarOutboxRepository(
-    this._isar, {
-    OutboxMapper mapper = const OutboxMapper(),
-  }) : _mapper = mapper;
+  const IsarOutboxRepository(this._isar, [this._mapper = const OutboxMapper()]);
 
   @override
   Future<void> enqueueResponseEvent(ResponseEvent event) async {
@@ -24,7 +21,9 @@ class IsarOutboxRepository implements OutboxRepository {
 
   @override
   Future<List<ResponseEvent>> pendingResponseEvents() async {
-    final List<OutboxEntity> entities = await _isar.outboxEntitys.where().findAll();
+    final List<OutboxEntity> entities = await _isar.outboxEntitys
+        .where()
+        .findAll();
     return entities
         .where((OutboxEntity entity) {
           return entity.eventType == OutboxMapper.responseEventType;
